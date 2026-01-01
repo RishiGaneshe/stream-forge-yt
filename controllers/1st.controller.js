@@ -83,14 +83,25 @@ exports.getApiVideoInfo = async (req, res, next) => {
       output += d.toString()
     })
 
-    ytdlp.stderr.on('data', () => {})
+    let errorOutput = ''
+    ytdlp.stderr.on('data', (d) => {
+      errorOutput += d.toString()
+    })
+    
 
     ytdlp.on('close', code => {
       if (code !== 0) {
-        return next(new AppError('Failed to fetch video info', 500))
+        console.error('yt-dlp failed:', errorOutput)
+        return next(new AppError('Failed to fetch video info', 500, 'INTERNAL_ERROR'))
       }
 
-      const meta = JSON.parse(output)
+      let meta;
+      try {
+        meta = JSON.parse(output)
+      } catch (err) {
+        console.error('Failed to parse yt-dlp output:', output)
+        return next(new AppError('Failed to parse video info', 500, 'INTERNAL_ERROR'))
+      }
 
       const formats = meta.formats
         .filter(f =>
