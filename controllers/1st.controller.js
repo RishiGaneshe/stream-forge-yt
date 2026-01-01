@@ -14,7 +14,7 @@ const ALLOWED_HOSTS = new Set([ 'youtube.com', 'www.youtube.com', 'youtu.be' ])
 
 const ytDlpPath = isWin
   ? spawnSync('where', ['yt-dlp']).stdout.toString().split('\n')[0].trim()
-  : spawnSync('which', ['yt-dlp']).stdout.toString().trim();
+  : spawnSync('which', ['yt-dlp']).stdout.toString().trim()
 
 
 if (!ytDlpPath) {
@@ -76,6 +76,7 @@ exports.getApiVideoInfo = async (req, res, next) => {
       throw new AppError('Invalid YouTube URL', 400)
     }
 
+    console.log(ytDlpPath)
     ytdlp = spawn(ytDlpPath, ['--no-warnings', '-j', '--no-playlist', videoUrl])
 
     ytdlp.stdout.on('data', d => {
@@ -123,6 +124,7 @@ exports.getApiVideoInfo = async (req, res, next) => {
     })
 
   } catch (err) {
+    console.log('Error in getVideoInfo:', err)
     if (ytdlp) ytdlp.kill('SIGKILL')
     next(err)
   }
