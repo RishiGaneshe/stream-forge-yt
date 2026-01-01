@@ -1,7 +1,7 @@
 module.exports = {
     apps: [{
       name: "stream-forge",
-      script: "app.js",
+      script: "server.js",
       cwd: __dirname,
       instances: 1,
       exec_mode: "fork",
