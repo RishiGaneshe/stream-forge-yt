@@ -27,47 +27,34 @@ jobs:
           ENV_FILE="${{ secrets.ENV_FILE_PROD }}"
 
           APP_DIR="/home/$SERVER_USER/stream-forge"
-          APP_NAME="stream-forge"
           NODE_ENV="production"
 
-          echo "➡️ Ensuring directories exist on server"
           ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+            echo '➡️ Ensuring directories exist'
             mkdir -p $APP_DIR
-          "
 
-          echo "➡️ Uploading production environment file"
-          printf '%s' "$ENV_FILE" | ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cat > $APP_DIR/.env"
+            echo '➡️ Uploading .env file'
+            echo \"$ENV_FILE\" > $APP_DIR/.env
 
-          echo "➡️ Syncing project files"
-          rsync -az --delete \
-            --exclude '.git' \
-            --exclude 'node_modules' \
-            --exclude '.env' \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            ./ $SERVER_USER@$SERVER_IP:$APP_DIR
+            echo '➡️ Syncing project files'
+            rsync -az --delete --exclude '.git' --exclude 'node_modules' --exclude '.env' ./ $APP_DIR
 
-          echo "➡️ Installing dependencies & reloading app"
-          ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
-            set -e
+            echo '➡️ Installing dependencies'
             cd $APP_DIR
+            npm install
 
-            export NODE_ENV=$NODE_ENV
-
-            if ! command -v node >/dev/null 2>&1; then
-              echo '❌ Node.js not installed on production server'
+            echo '➡️ Verifying ecosystem.config.js exists'
+            if [ ! -f $APP_DIR/ecosystem.config.js ]; then
+              echo '❌ ecosystem.config.js missing'
               exit 1
             fi
 
+            echo '➡️ Reloading app via PM2'
             if ! command -v pm2 >/dev/null 2>&1; then
               echo '➡️ Installing PM2 globally'
               npm install -g pm2
             fi
 
-            echo '➡️ Installing production dependencies'
-            npm install
-
-            echo "➡️ Reloading application via PM2"
             pm2 startOrReload ecosystem.config.js --env production
-
             pm2 save
           "
