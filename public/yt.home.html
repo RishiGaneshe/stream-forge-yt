@@ -286,7 +286,7 @@ fetchBtn.onclick = async () => {
   optionsEl.style.display='none'
 
   try{
-    const r = await fetch(`http://localhost:3000/video/info?url=${encodeURIComponent(url)}`)
+    const r = await fetch(`/video/info?url=${encodeURIComponent(url)}`)
     const j = await r.json()
     if(!j.success) throw 0
     render(j.data)
@@ -331,7 +331,7 @@ function download(){
     startTime: document.getElementById('startTime').value,
     endTime: document.getElementById('endTime').value
   })
-  location.href=`http://localhost:3000/video/download?${params.toString()}`
+  location.href=`/video/download?${params.toString()}`
 }
 
 function resetUI(){
