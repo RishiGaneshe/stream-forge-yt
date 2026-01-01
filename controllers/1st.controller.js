@@ -9,7 +9,7 @@ const AppError = require('../utils/appError.utils')
 const os = require('os')
 
 
-const cookieFile = path.join(__dirname, '..', 'configs', 'youtube-cookies.txt')
+const cookieFile = path.join(__dirname, '..', 'configs', 'all_cookies.txt')
 
 const ALLOWED_HOSTS = new Set([ 'youtube.com', 'www.youtube.com', 'youtu.be' ])
 
