@@ -27,7 +27,8 @@ app.use(helmet({ contentSecurityPolicy: false }))
 
 const ALLOWED_ORIGINS = [
     'http://localhost:5500',
-    'http://127.0.0.1:5500'
+    'http://127.0.0.1:5500',
+    'http://15.206.115.26:10000'
 ]
   
 app.use(cors({

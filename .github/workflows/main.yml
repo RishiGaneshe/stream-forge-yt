@@ -64,11 +64,10 @@ jobs:
             fi
 
             echo '➡️ Installing production dependencies'
-            npm install --omit=dev
+            npm install
 
-            echo '➡️ Reloading application via PM2'
-            pm2 startOrReload ecosystem.config.js --env production || \
-            pm2 start app.js --name $APP_NAME --env production
+            echo "➡️ Reloading application via PM2"
+            pm2 startOrReload ecosystem.config.js --env production
 
             pm2 save
           "
