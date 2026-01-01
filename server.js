@@ -3,7 +3,7 @@
 const http = require('http')
 const app = require('./app')
 
-const PORT = 3000
+const PORT = 10000
 
 process.on('uncaughtException', err => {
   console.error('Uncaught Exception', err)
