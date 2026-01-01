@@ -27,34 +27,53 @@ jobs:
           ENV_FILE="${{ secrets.ENV_FILE_PROD }}"
 
           APP_DIR="/home/$SERVER_USER/stream-forge"
+          APP_NAME="stream-forge"
           NODE_ENV="production"
 
+          echo "➡️ Ensuring directories exist on server"
           ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
-            echo '➡️ Ensuring directories exist'
             mkdir -p $APP_DIR
+          "
 
-            echo '➡️ Uploading .env file'
-            echo \"$ENV_FILE\" > $APP_DIR/.env
+          echo "➡️ Uploading production environment file"
+          printf '%s' "$ENV_FILE" | ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cat > $APP_DIR/.env"
 
-            echo '➡️ Syncing project files'
-            rsync -az --delete --exclude '.git' --exclude 'node_modules' --exclude '.env' ./ $APP_DIR
+          echo "➡️ Syncing project files including ecosystem.config.js"
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            ./ $SERVER_USER@$SERVER_IP:$APP_DIR
 
-            echo '➡️ Installing dependencies'
+
+          echo "➡️ Installing dependencies & reloading app"
+          ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+            set -e
             cd $APP_DIR
-            npm install
 
-            echo '➡️ Verifying ecosystem.config.js exists'
-            if [ ! -f $APP_DIR/ecosystem.config.js ]; then
-              echo '❌ ecosystem.config.js missing'
+            export NODE_ENV=$NODE_ENV
+
+            if ! command -v node >/dev/null 2>&1; then
+              echo '❌ Node.js not installed on production server'
               exit 1
             fi
 
-            echo '➡️ Reloading app via PM2'
             if ! command -v pm2 >/dev/null 2>&1; then
               echo '➡️ Installing PM2 globally'
               npm install -g pm2
             fi
 
+            echo '➡️ Installing production dependencies'
+            npm install
+
+            echo "➡️ Verifying ecosystem.config.js exists on server"
+            if [ ! -f $APP_DIR/ecosystem.config.js ]; then
+              echo "❌ ecosystem.config.js not found in $APP_DIR"
+              exit 1
+            fi
+
+            echo "➡️ Reloading application via PM2"
             pm2 startOrReload ecosystem.config.js --env production
+
             pm2 save
           "
