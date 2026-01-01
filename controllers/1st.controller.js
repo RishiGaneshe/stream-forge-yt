@@ -9,6 +9,8 @@ const AppError = require('../utils/appError.utils')
 const os = require('os')
 
 
+const cookieFile = path.join(__dirname, '..', 'configs', 'youtube-cookies.txt')
+
 const ALLOWED_HOSTS = new Set([ 'youtube.com', 'www.youtube.com', 'youtu.be' ])
 
 
@@ -77,7 +79,7 @@ exports.getApiVideoInfo = async (req, res, next) => {
     }
 
     console.log(ytDlpPath)
-    ytdlp = spawn(ytDlpPath, ['--no-warnings', '-j', '--no-playlist', videoUrl])
+    ytdlp = spawn(ytDlpPath, ['--no-warnings', '-j', '--no-playlist', '--cookies', cookieFile, videoUrl])
 
     ytdlp.stdout.on('data', d => {
       output += d.toString()
@@ -188,7 +190,7 @@ exports.getAPiDownloadVideo = async (req, res, next) => {
 
     filePath = path.join(os.tmpdir(), `${safeFileName}.${outputExt}`)
 
-    const args = [url, '--no-warnings', '--no-playlist', '-o', filePath]
+    const args = [url, '--no-warnings', '--no-playlist', '--cookies', cookieFile,'-o', filePath]
 
     if (type === 'audio') {
       args.push('-x', '--audio-format', audioFormat || 'mp3', '--audio-quality', '0')
