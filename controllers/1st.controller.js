@@ -1,6 +1,7 @@
 'use strict'
 
-const { spawn } = require('child_process')
+const { spawnSync, spawn } = require('child_process')
+const isWin = process.platform === 'win32'
 const { URL } = require('url')
 const fs = require('fs')
 const path = require('path')
@@ -10,6 +11,15 @@ const os = require('os')
 
 const ALLOWED_HOSTS = new Set([ 'youtube.com', 'www.youtube.com', 'youtu.be' ])
 
+
+const ytDlpPath = isWin
+  ? spawnSync('where', ['yt-dlp']).stdout.toString().split('\n')[0].trim()
+  : spawnSync('which', ['yt-dlp']).stdout.toString().trim();
+
+
+if (!ytDlpPath) {
+  throw new Error('yt-dlp not found in PATH')
+}
 
 function validateYoutubeUrl(input) {
   let u
@@ -66,12 +76,7 @@ exports.getApiVideoInfo = async (req, res, next) => {
       throw new AppError('Invalid YouTube URL', 400)
     }
 
-    ytdlp = spawn('yt-dlp', [
-      '--no-warnings',
-      '-j',
-      '--no-playlist',
-      videoUrl
-    ])
+    ytdlp = spawn(ytDlpPath, ['--no-warnings', '-j', '--no-playlist', videoUrl])
 
     ytdlp.stdout.on('data', d => {
       output += d.toString()
@@ -202,7 +207,7 @@ exports.getAPiDownloadVideo = async (req, res, next) => {
       args.push('--download-sections', `*${startTime || '00:00:00'}-${endTime || ''}`)
     }
 
-    ytdlp = spawn('yt-dlp', args)
+    ytdlp = spawn(ytDlpPath, args)
 
     ytdlp.stderr.on('data', data => {
      
